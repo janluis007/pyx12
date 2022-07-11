@@ -2,11 +2,7 @@ import os.path
 import sys
 import os
 import unittest
-
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
+from io import StringIO
 
 import tempfile
 
