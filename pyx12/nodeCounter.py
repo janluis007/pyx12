@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -13,7 +13,7 @@ Loop and segment counter
 """
 from collections import OrderedDict
 import pyx12.path
-from decorators import dump_args
+from .decorators import dump_args
 
 
 class NodeCounter(object):
@@ -35,7 +35,7 @@ class NodeCounter(object):
         Keep count of xpath node
         """
         parent = NodeCounter.makeX12Path(xpath)
-        child_keys = list([x for x in self._dict.keys() if parent.is_child_path(x.format())])
+        child_keys = [x for x in self._dict.keys() if parent.is_child_path(x.format())]
         for k in child_keys:
             del self._dict[k]
 

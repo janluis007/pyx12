@@ -1,6 +1,6 @@
 #####################################################################
-# Copyright Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -13,15 +13,12 @@ Parse a ANSI X12N data file.  Validate against a map and codeset values.
 Create XML, HTML, and 997/999 documents based on the data file.
 """
 
-#import os
-#import os.path
 import logging
 
 # Intrapackage imports
 import pyx12.error_handler
 import pyx12.error_997
 import pyx12.error_999
-#import pyx12.error_debug
 import pyx12.error_html
 import pyx12.errors
 import pyx12.map_index
@@ -29,32 +26,6 @@ import pyx12.map_if
 import pyx12.x12file
 from pyx12.map_walker import walk_tree
 import pyx12.x12xml_simple
-
-
-#def apply_loop_count(orig_node, new_map):
-#    """
-#    Apply loop counts to current map
-#    """
-#    logger = logging.getLogger('pyx12')
-#    ct_list = []
-#    orig_node.get_counts_list(ct_list)
-#    for (path, ct) in ct_list:
-#        try:
-#            curnode = new_map.getnodebypath(path)
-#            curnode.set_cur_count(ct)
-#        except pyx12.errors.EngineError:
-#            logger.error('getnodebypath failed:  path "%s" not found' % path)
-
-
-#def reset_isa_counts(cur_map):
-#    cur_map.getnodebypath('/ISA_LOOP').set_cur_count(1)
-#    cur_map.getnodebypath('/ISA_LOOP/ISA').set_cur_count(1)
-
-
-#def reset_gs_counts(cur_map):
-#    cur_map.getnodebypath('/ISA_LOOP/GS_LOOP').reset_cur_count()
-#    cur_map.getnodebypath('/ISA_LOOP/GS_LOOP').set_cur_count(1)
-#    cur_map.getnodebypath('/ISA_LOOP/GS_LOOP/GS').set_cur_count(1)
 
 
 def _reset_counter_to_isa_counts(walker):
@@ -76,7 +47,8 @@ def _reset_counter_to_gs_counts(walker):
 
 
 def x12n_document(param, src_file, fd_997, fd_html,
-                  fd_xmldoc=None, xslt_files=None, map_path=None):
+                  fd_xmldoc=None, xslt_files=None, map_path=None,
+                  callback=None):
     """
     Primary X12 validation function
     @param param: pyx12.param instance
@@ -108,6 +80,7 @@ def x12n_document(param, src_file, fd_997, fd_html,
     node = control_map.getnodebypath('/ISA_LOOP/ISA')
     walker = walk_tree()
     icvn = fic = vriic = tspc = None
+    cur_map = None  # we do not initially know the X12 transaction type
     #XXX Generate TA1 if needed.
 
     if fd_html:
@@ -131,7 +104,7 @@ def x12n_document(param, src_file, fd_997, fd_html,
             print('--------------------------------------------')
             # reset to control map for ISA and GS loops
             print('------- counters before --------')
-            print(walker.counter._dict)
+            print((walker.counter._dict))
         if seg.get_seg_id() == 'ISA':
             node = control_map.getnodebypath('/ISA_LOOP/ISA')
             walker.forceWalkCounterToLoopStart('/ISA_LOOP', '/ISA_LOOP/ISA')
@@ -150,7 +123,7 @@ def x12n_document(param, src_file, fd_997, fd_html,
 
         if False:
             print('------- counters after --------')
-            print(walker.counter._dict)
+            print((walker.counter._dict))
         if node is None:
             node = orig_node
         else:
@@ -222,14 +195,19 @@ def x12n_document(param, src_file, fd_997, fd_html,
             #erx.handleErrors(src.pop_errors())
             #erx.handleErrors(errh.get_errors())
             #errh.reset()
-
+        if callback:
+            try:
+                callback(seg, src, node, valid)
+            except:
+                logger.error('callback failed')
+                pass
         if fd_html:
             if node is not None and node.is_first_seg_in_loop():
                 html.loop(node.get_parent())
             err_node_list = []
             while True:
                 try:
-                    err_iter.next()
+                    next(err_iter)
                     err_node = err_iter.get_cur_node()
                     err_node_list.append(err_node)
                 except pyx12.errors.IterOutOfBounds:
@@ -260,20 +238,28 @@ def x12n_document(param, src_file, fd_997, fd_html,
     #errh.accept(visit_debug)
 
     #If this transaction is not a 997/999, generate one.
-    #import ipdb; ipdb.set_trace()
     if fd_997 and fic != 'FA':
         if vriic and vriic[:6] == '004010':
-            visit_997 = pyx12.error_997.error_997_visitor(fd_997, src.get_term())
-            errh.accept(visit_997)
-            del visit_997
+            try:
+                visit_997 = pyx12.error_997.error_997_visitor(fd_997, src.get_term())
+                errh.accept(visit_997)
+                del visit_997
+            except Exception:
+                logger.exception('Failed to create 997 response')
         if vriic and vriic[:6] == '005010':
-            visit_999 = pyx12.error_999.error_999_visitor(fd_997, src.get_term())
-            errh.accept(visit_999)
-            del visit_999
+            try:
+                visit_999 = pyx12.error_999.error_999_visitor(fd_997, src.get_term())
+                errh.accept(visit_999)
+                del visit_999
+            except Exception:
+                logger.exception('Failed to create 999 response')
     del node
     del src
     del control_map
-    del cur_map
+    try:
+        del cur_map
+    except UnboundLocalError:
+        pass
     try:
         if not valid or errh.get_error_count() > 0:
             return False

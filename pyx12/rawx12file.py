@@ -1,6 +1,5 @@
 ######################################################################
-# Copyright (c) Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -8,15 +7,11 @@
 #
 ######################################################################
 
-#    $Id$
-
 """
 Low level interface to an X12 data input stream.
 Iterates over segment line strings.
 Used by X12Reader.
 """
-
-# Intrapackage imports
 import pyx12.errors
 import pyx12.segment
 

@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -13,13 +13,12 @@ Generates a 997 Response
 Visitor - Visits an error_handler composite
 """
 
-#from types import *
 import time
 import logging
 
 # Intrapackage imports
-from errors import EngineError
-import error_visitor
+from .errors import EngineError
+from . import error_visitor
 import pyx12.segment
 
 logger = logging.getLogger('pyx12.error_997')
@@ -77,7 +76,7 @@ class error_997_visitor(error_visitor.error_visitor):
         isa_seg.append(seg.get_value('ISA11'))
         isa_seg.append(icvn)
         isa_seg.append(self.isa_control_num)  # ISA Interchange Control Number
-        isa_seg.append(seg.get_value('ISA14'))
+        isa_seg.append('0') # No need for TA1 response to 997
         isa_seg.append(seg.get_value('ISA15'))
         isa_seg.append(self.subele_term)
         self._write(isa_seg)
@@ -120,8 +119,28 @@ class error_997_visitor(error_visitor.error_visitor):
                     err_codes.append(isa_ele_err_map[elem.ele_pos])
                 elif 'IEA' in err_str:
                     err_codes.append(iea_ele_err_map[elem.ele_pos])
-        # return unique codes
-        return list(set(err_codes))
+
+        # Codes extracted from https://msdn.microsoft.com/en-us/library/bb246074.aspx
+        reject_suspend_codes = set([
+            '004', '005', '007', '010', '011',
+            '012', '013', '014', '015', '016',
+            '017', '018', '022', '023', '024',
+            '025', '026', '027'])
+
+        # return unique codes, while trying to keep the order of the list
+        # this is to ensure that test result is deterministic on Python 3
+        uniq_codes = []
+        for err in err_codes:
+            if err in uniq_codes:
+                continue
+
+            # priotize reject codes, rather than accept with errors codes
+            if err in reject_suspend_codes:
+                uniq_codes.insert(0, err)
+            else:
+                uniq_codes.append(err)
+
+        return uniq_codes
 
     def visit_root_post(self, errh):
         """
@@ -257,7 +276,7 @@ class error_997_visitor(error_visitor.error_visitor):
             #seg.append('%s' % err_cde)
         self._write(seg_data)
         #for child in err_gs.children:
-            #print child.cur_line, child.seg
+            #print(child.cur_line, child.seg)
         #logger.info('err_gs has %i children' % len(self.children))
 
         #SE

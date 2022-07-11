@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -14,7 +14,6 @@ Generates HTML error output
 
 import time
 import logging
-from types import ListType
 
 # Intrapackage imports
 
@@ -117,13 +116,13 @@ class error_html(object):
                 for j in range(1, seg_data.ele_len('%02i' % (i)) + 1):
                     ref_des = '%02i-%i' % (i, j)
                     ele_str = escape_html_chars(seg_data.get_value(ref_des))
-                    if i in list(ele_pos_map.keys()) and ele_pos_map[i] == j:
+                    if i in ele_pos_map.keys() and ele_pos_map[i] == j:
                         ele_str = self._wrap_ele_error(ele_str)
                     t_seg[-1].append(ele_str)
             else:
                 ref_des = '%02i' % (i)
                 ele_str = escape_html_chars(seg_data.get_value(ref_des))
-                if i in list(ele_pos_map.keys()):
+                if i in ele_pos_map.keys():
                     ele_str = self._wrap_ele_error(ele_str)
                 t_seg.append(ele_str)
 
@@ -191,7 +190,7 @@ def seg_str(seg, seg_term, ele_term, subele_term, eol=''):
     #    logger.debug(seg)
     tmp = []
     for a in seg:
-        if type(a) is ListType:
+        if type(a) is list:
             tmp.append(subele_term.join(a))
         else:
             tmp.append(a)

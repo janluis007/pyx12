@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright (c) 2001-2005 Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright (c)
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -8,29 +8,17 @@
 #
 ######################################################################
 
-#    $Id$
-
 """
 Capture X12 Errors
 """
 
 import logging
-#from types import *
-#import pdb
 import tempfile
-#import lxml
 import os
 
 # Intrapackage imports
-from errors import EngineError
-from xmlwriter import XMLWriter
-
-#class error_node:
-#    def __init__(self)
-
-logger = logging.getLogger('pyx12.errh_xml')
-#logger.setLevel(logging.DEBUG)
-#logger.setLevel(logging.ERROR)
+from .errors import EngineError
+from .xmlwriter import XMLWriter
 
 
 class err_handler(object):
@@ -42,34 +30,29 @@ class err_handler(object):
         @param xml_out: Output filename, if None, will dump to tempfile
         @param basedir: working directory, where file will be created
         """
+        self.logger = logging.getLogger('pyx12.errh_xml')
         if xml_out:
             self.filename = xml_out
-            fd = open(xml_out, 'w')
+            self.fd = open(xml_out, 'w')
         else:
             try:
                 (fdesc, self.filename) = tempfile.mkstemp('.xml', 'pyx12_')
-                fd = os.fdopen(fdesc, 'w+b')
-                #fd = tempfile.NamedTemporaryFile()
-                #self.filename = fd.name
+                self.fd = os.fdopen(fdesc, 'w+b')
             except:
-                #self.filename = '997.tmp.xml'
-                (fdesc, self.filename) = tempfile.mkstemp(suffix='.xml',
-                                                          prefix='pyx12_', dir=basedir)
-                fd = os.fdopen(fdesc, 'w+b')
-                #fd = file(os.path.join(basedir, self.filename), 'w')
+                (fdesc, self.filename) = tempfile.mkstemp(suffix='.xml', prefix='pyx12_', dir=basedir)
+                self.fd = os.fdopen(fdesc, 'w+b')
         self.cur_line = None
         self.errors = []
-        if not fd:
+        if not self.fd:
             raise EngineError('Could not open temp error xml file')
-        self.writer = XMLWriter(fd)
-        #self.writer.doctype(
-        #    u"x12simple", u"-//J Holland//DTD XML X12 Document Conversion1.0//EN//XML",
-        #    u"%s" % (dtd_urn))
+        self.writer = XMLWriter(self.fd)
         self.writer.push("x12err")
 
     def __del__(self):
         while len(self.writer) > 0:
             self.writer.pop()
+        if not self.fd.closed:
+            self.fd.close()
 
     def getFilename(self):
         return self.filename
@@ -111,7 +94,8 @@ class err_handler(object):
                 if err_val:
                     self.writer.elem("errval", err_val)
                 #self.writer.push(u"seg", {u'line': '%i'%(cur_line)})
-                        #self.writer.elem(u'ele', seg_data.get_value('%02i' % (i+1)),
+                        #self.writer.elem(u'ele', seg_data.get_value('%02i' %
+                        #(i+1)),
                         #    attrs={u'id': child_node.id})
                 self.writer.pop()  # end err
             self.writer.pop()  # end segment
@@ -128,6 +112,7 @@ class errh_list(object):
     Stores the current error in simple variables.
     """
     def __init__(self):
+        self.logger = logging.getLogger('pyx12.errh_xml')
         #self.id = 'ROOT'
         self.errors = []
         #self.cur_node = self
@@ -197,7 +182,7 @@ class errh_list(object):
         sout = ''
         sout += 'Line:%i ' % (self.cur_line)
         sout += 'ISA:%s - %s' % (err_cde, err_str)
-        logger.error(sout)
+        self.logger.error(sout)
 
     def gs_error(self, err_cde, err_str):
         """
@@ -210,7 +195,7 @@ class errh_list(object):
         sout = ''
         sout += 'Line:%i ' % (self.cur_line)
         sout += 'GS:%s - %s' % (err_cde, err_str)
-        logger.error(sout)
+        self.logger.error(sout)
 
     def st_error(self, err_cde, err_str):
         """
@@ -223,7 +208,7 @@ class errh_list(object):
         sout = ''
         sout += 'Line:%i ' % (self.cur_line)
         sout += 'ST:%s - %s' % (err_cde, err_str)
-        logger.error(sout)
+        self.logger.error(sout)
 
     def seg_error(self, err_cde, err_str, err_value=None, src_line=None):
         """
@@ -238,7 +223,7 @@ class errh_list(object):
         sout += 'SEG:%s - %s' % (err_cde, err_str)
         if err_value:
             sout += ' (%s)' % err_value
-        logger.error(sout)
+        self.logger.error(sout)
 
     def ele_error(self, err_cde, err_str, bad_value):
         """
@@ -253,7 +238,7 @@ class errh_list(object):
         sout += 'ELE:%s - %s' % (err_cde, err_str)
         if bad_value:
             sout += ' (%s)' % (bad_value)
-        logger.error(sout)
+        self.logger.error(sout)
 
     def close_isa_loop(self, node, seg, src):
         """

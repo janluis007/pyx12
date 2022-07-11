@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright (c) Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright (c) 
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -14,7 +14,7 @@ Visitor - Visits an error_handler composite
 """
 
 # Intrapackage imports
-from error_visitor import error_visitor
+from .error_visitor import error_visitor
 
 
 class error_debug_visitor(error_visitor):

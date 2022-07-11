@@ -280,6 +280,11 @@ class IsValidSegID(unittest.TestCase):
         seg = pyx12.segment.Segment(seg_str, '~', '*', ':')
         self.assertTrue(seg.is_seg_id_valid())
 
+    #def test_valid_seg_id_leading_digit(self):
+    #    seg_str = '543'
+    #    seg = pyx12.segment.Segment(seg_str, '~', '*', ':')
+    #    self.assertTrue(seg.is_seg_id_valid())
+
     def test_empty_seg(self):
         seg_str = ''
         seg = pyx12.segment.Segment(seg_str, '~', '*', ':')
@@ -292,6 +297,16 @@ class IsValidSegID(unittest.TestCase):
 
     def test_seg_id_too_short(self):
         seg_str = 'A*1~'
+        seg = pyx12.segment.Segment(seg_str, '~', '*', ':')
+        self.assertFalse(seg.is_seg_id_valid())
+
+    def test_seg_id_invalid_character(self):
+        seg_str = 'A(A*1~'
+        seg = pyx12.segment.Segment(seg_str, '~', '*', ':')
+        self.assertFalse(seg.is_seg_id_valid())
+    
+    def test_seg_id_invalid_leading_space(self):
+        seg_str = ' AA*1~'
         seg = pyx12.segment.Segment(seg_str, '~', '*', ':')
         self.assertFalse(seg.is_seg_id_valid())
 
@@ -351,7 +366,7 @@ class IsaTerminators(unittest.TestCase):
             seg_term='~', ele_term='*', subele_term=':'), result)
 
     def test_no_change_5010(self):
-        initial = 'ISA*03*SENDER    *01*          *ZZ*SENDER         *ZZ*RECEIVER       *040611*1333*^*00501*000000125*0*P*\~'
+        initial = r'ISA*03*SENDER    *01*          *ZZ*SENDER         *ZZ*RECEIVER       *040611*1333*^*00501*000000125*0*P*\~'
         result = initial
         seg_isa = pyx12.segment.Segment(initial, '~', '*', ':')
         self.assertMultiLineEqual(seg_isa.format(
@@ -359,7 +374,7 @@ class IsaTerminators(unittest.TestCase):
 
     def test_subele(self):
         initial = 'ISA*03*SENDER    *01*          *ZZ*SENDER         *ZZ*RECEIVER       *040611*1333*^*00501*000000125*0*P*:~'
-        result = 'ISA*03*SENDER    *01*          *ZZ*SENDER         *ZZ*RECEIVER       *040611*1333*^*00501*000000125*0*P*\~'
+        result = r'ISA*03*SENDER    *01*          *ZZ*SENDER         *ZZ*RECEIVER       *040611*1333*^*00501*000000125*0*P*\~'
         seg_isa = pyx12.segment.Segment(initial, '~', '*', ':')
         seg_isa.set('ISA16', '\\')
         self.assertMultiLineEqual(seg_isa.format(subele_term='\\'), result)

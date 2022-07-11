@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright 
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -17,10 +17,12 @@ treated as a composite element with one sub-element.
 
 All indexing is zero based.
 """
+import re
 
 import pyx12.path
 from pyx12.errors import EngineError
 
+rec_seg_id = re.compile('^[A-Z][A-Z0-9]{1,2}$', re.S)
 
 class Element(object):
     """
@@ -107,6 +109,8 @@ class Element(object):
         else:
             return True
 
+    # return ''.join([`num` for num in xrange(loop_count)])
+    # def has_invalid_character(self, 
 
 class Composite(object):
     """
@@ -125,6 +129,8 @@ class Composite(object):
             raise EngineError('The sub-element terminator must be a single character, is %s' % (subele_term))
         self.subele_term = subele_term
         self.subele_term_orig = subele_term
+        if ele_str is None:
+            raise EngineError('Element string is None')
         members = ele_str.split(self.subele_term)
         self.elements = []
         for elem in members:
@@ -186,9 +192,12 @@ class Composite(object):
         Format a composite
 
         @return: string
+        @raise EngineError: If terminator is None and no default
         """
         if subele_term is None:
             subele_term = self.subele_term
+        if subele_term is None:
+            raise EngineError('subele_term is None')
         for i in range(len(self.elements) - 1, -1, -1):
             if not self.elements[i].is_empty():
                 break
@@ -236,6 +245,12 @@ class Composite(object):
             if not ele.is_empty():
                 return False
         return True
+
+    def values_iterator(self):
+        for j in range(len(self.elements)):
+            if not self.elements[j].is_empty():
+                subele_ord = '{comp}'.format(comp=j+1)
+                yield (subele_ord, self.elements[j].get_value())
 
 
 class Segment(object):
@@ -356,8 +371,11 @@ class Segment(object):
         @type ref_des: string
         @return: Element or Composite
         @rtype: L{segment.Composite}
+        @raise IndexError: If ref_des does not contain a valid element index
         """
         (ele_idx, comp_idx) = self._parse_refdes(ref_des)
+        if ele_idx is None:
+            raise IndexError('{} is not a valid element index'.format(ref_des))
         if ele_idx >= self.__len__():
             return None
         if comp_idx is None:
@@ -384,7 +402,7 @@ class Segment(object):
         @type ref_des: string
         @attention: Deprecated - use get_value
         """
-        raise DeprecationWarning('User Segment.get_value')
+        raise DeprecationWarning('Use Segment.get_value')
 
     def set(self, ref_des, val):
         """
@@ -478,6 +496,7 @@ class Segment(object):
         if subele_term is None:
             raise EngineError('subele_term is None')
         str_elems = []
+        # get index of last non-empty element
         i = 0
         for i in range(len(self.elements) - 1, -1, -1):
             if not self.elements[i].is_empty():
@@ -513,16 +532,37 @@ class Segment(object):
 
     def is_seg_id_valid(self):
         """
-        Is the Segment identifier the correct length
+        Is the Segment identifier valid?
+        EBNF: 
+        <seg_id> ::= <letter_or_digit> <letter_or_digit> [<letter_or_digit>]
         @rtype: boolean
         """
         if not self.seg_id or len(self.seg_id) < 2 or len(self.seg_id) > 3:
             return False
         else:
-            return True
+            m = rec_seg_id.search(self.seg_id)
+            if not m:
+                return False # Invalid char matched
+        return True
 
     def copy(self):
         return self.__copy__()
 
     def __copy__(self):
         return Segment(self.format(), self.seg_term, self.ele_term, self.subele_term)
+
+    def values_iterator(self):
+        """
+        Enumerate over the values in the segment, adding the path, element index and sub-element index
+        """
+        for i in range(len(self.elements)):
+            if self.elements[i].is_composite():
+                for (comp_ord, val) in self.elements[i].values_iterator():
+                    ele_ord = '{idx:0>2}'.format(idx=i+1)
+                    refdes = '{segid}{ele_ord}-{comp_ord}'.format(segid=self.seg_id, ele_ord=ele_ord, comp_ord=comp_ord)
+                    yield (refdes, ele_ord, comp_ord, val)
+            else:
+                if not self.elements[i].is_empty():
+                    ele_ord = '{idx:0>2}'.format(idx=i+1)
+                    refdes = '{segid}{ele_ord}'.format(segid=self.seg_id, ele_ord=ele_ord)
+                    yield (refdes, ele_ord, None, self.elements[i].get_value())

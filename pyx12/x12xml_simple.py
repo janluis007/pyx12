@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright 
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -11,14 +11,13 @@
 """
 Create a XML rendering of the X12 document
 """
-
 from os.path import commonprefix
 import logging
 
 # Intrapackage imports
-from errors import EngineError
-from x12xml import x12xml
-from map_walker import pop_to_parent_loop
+from .errors import EngineError
+from .x12xml import x12xml
+from .map_walker import pop_to_parent_loop
 
 logger = logging.getLogger('pyx12.x12xml.simple')
 

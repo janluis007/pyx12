@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -14,8 +14,8 @@ External Codes interface
 
 import os.path
 import logging
-from pkg_resources import resource_stream
 import xml.etree.cElementTree as et
+from pkg_resources import resource_stream
 
 # Intrapackage imports
 from pyx12.errors import EngineError
@@ -51,12 +51,10 @@ class ExternalCodes(object):
         else:
             logger.debug("Looking for codes file '{}' in pkg_resources".format(codes_file))
             code_fd = resource_stream(__name__, os.path.join('map', codes_file))
-        codeset_id = None
-        #base_name = None
 
         self.exclude_list = exclude.split(',') if exclude is not None else []
-
-        for cElem in et.parse(code_fd).iter('codeset'):
+        parser = et.XMLParser(encoding="utf-8")
+        for cElem in et.parse(code_fd, parser=parser).iter('codeset'):
             codeset_id = cElem.findtext('id')
             name = cElem.findtext('name')
             data_ele = cElem.findtext('data_ele')
@@ -65,6 +63,7 @@ class ExternalCodes(object):
                 codes.append(code.text)
             self.codes[codeset_id] = {'name': name, 'dataele':
                                       data_ele, 'codes': codes}
+        code_fd.close()
 
     def isValid(self, key, code, check_dte=None):
         """
@@ -78,10 +77,10 @@ class ExternalCodes(object):
         @return: True if code is valid, False if not
         @rtype: boolean
         """
-        #if not given a key, do not flag an error
+        # if not given a key, do not flag an error
         if not key:
             raise EngineError('bad key %s' % (key))
-        #check the code against the list indexed by key
+        # check the code against the list indexed by key
         else:
             if key in self.exclude_list:
                 return True
@@ -91,9 +90,8 @@ class ExternalCodes(object):
                 return True
         return False
 
-    def debug_print(self):
+    def debug_print(self, count=10):
         """
-        Debug print first 10 codes
+        Debug print first <count> codes
         """
-        for key in list(self.codes.keys()):
-            print((self.codes[key][:10]))
+        print([v for k,v in self.codes.items()[:count]])

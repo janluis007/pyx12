@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -15,7 +15,7 @@ Interface to X12 Errors
 import logging
 
 # Intrapackage imports
-from errors import IterOutOfBounds  # , IterDone
+from .errors import IterOutOfBounds  # , IterDone
 
 logger = logging.getLogger('pyx12.error_handler')
 
@@ -296,7 +296,7 @@ class err_handler(object):
         if bad_value:
             sout += ' (%s)' % (bad_value)
         logger.error(sout)
-        #print self.cur_ele_node.errors
+        #print(self.cur_ele_node.errors)
 
     def close_isa_loop(self, node, seg, src):
         """

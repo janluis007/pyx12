@@ -1,8 +1,5 @@
 import unittest
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
+from io import StringIO
 import logging
 import tempfile
 
@@ -11,6 +8,7 @@ import pyx12.x12file
 import pyx12.x12xml_simple
 import pyx12.xmlx12_simple
 import pyx12.params
+import pyx12.x12n_document
 from pyx12.test.x12testdata import datafiles
 
 
@@ -33,6 +31,7 @@ class XmlTransformTestCase(unittest.TestCase):
                 fd = StringIO(x12str, encoding='ascii')
             else:
                 fd = StringIO(encoding='ascii')
+
         fd.seek(0)
         return fd
 
@@ -42,10 +41,8 @@ class XmlTransformTestCase(unittest.TestCase):
         """
         src1 = pyx12.x12file.X12Reader(fd1)
         src2 = pyx12.x12file.X12Reader(fd2)
-        segs1 = [x.format() for x in src1 if x.get_seg_id(
-        ) not in ('ISA', 'GS', 'ST', 'SE', 'GE', 'IEA')]
-        segs2 = [x.format() for x in src2 if x.get_seg_id(
-        ) not in ('ISA', 'GS', 'ST', 'SE', 'GE', 'IEA')]
+        segs1 = [x.format() for x in src1 if x.get_seg_id() not in ('ISA', 'GS', 'ST', 'SE', 'GE', 'IEA')]
+        segs2 = [x.format() for x in src2 if x.get_seg_id() not in ('ISA', 'GS', 'ST', 'SE', 'GE', 'IEA')]
         self.assertListEqual(segs1, segs2)
 
     def _test_x12xml_simple(self, datakey):
@@ -53,27 +50,21 @@ class XmlTransformTestCase(unittest.TestCase):
         self.assertIn('source', datafiles[datakey])
         #self.assertIn('res997', datafiles[datakey])
         fd_source = self._makeFd(datafiles[datakey]['source'])
-        fd_xml = tempfile.TemporaryFile()
-        fd_result = StringIO()
-        self.param.set('xmlout', 'simple')
-        result = pyx12.x12n_document.x12n_document(
-            param=self.param, src_file=fd_source,
-            fd_997=None, fd_html=None, fd_xmldoc=fd_xml, xslt_files=None)
 
-        self.assertTrue(result)
-        fd_xml.seek(0)
-        fd_result.seek(0)
-        #print fd_xml.read()
-        #fd_xml.seek(0)
-        # assert is valid xml
-
-        #import xml.etree.cElementTree as et
-        #doc = et.parse(fd_xml)
-        #et.dump(doc)
-        result = pyx12.xmlx12_simple.convert(fd_xml, fd_result)
-        fd_source.seek(0)
-        fd_result.seek(0)
-        self._isX12Diff(fd_source, fd_result)
+        (fdesc, filename) = tempfile.mkstemp('.xml', 'pyx12_')
+        with open(filename, 'r+') as fd_xml:
+            # fd_xml = tempfile.TemporaryFile(mode='w+', encoding='ascii')
+            fd_result = StringIO()
+            self.param.set('xmlout', 'simple')
+            result = pyx12.x12n_document.x12n_document(param=self.param, src_file=fd_source,
+                fd_997=None, fd_html=None, fd_xmldoc=fd_xml, xslt_files=None)
+            self.assertTrue(result)
+            fd_xml.seek(0)
+            fd_result.seek(0)
+            result = pyx12.xmlx12_simple.convert(fd_xml, fd_result)
+            fd_source.seek(0)
+            fd_result.seek(0)
+            self._isX12Diff(fd_source, fd_result)
 
 
 class Test834(XmlTransformTestCase):
@@ -90,7 +81,6 @@ class Test835(XmlTransformTestCase):
 #class ExplicitMissing(XmlTransformTestCase):
 #    def test_837miss(self):
 #        self._test_x12xml_simple('837miss')
-
 
 class X12Structure(XmlTransformTestCase):
     #def test_mult_isa(self):
