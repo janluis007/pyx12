@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright (c) 2001-2011 Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright (c) 2001-2019
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -12,6 +12,9 @@
 Interface to normalized Data Elements
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
 import os.path
 import logging
 import xml.etree.cElementTree as et
@@ -49,7 +52,8 @@ class DataElements(object):
         else:
             logger.debug("Looking for data element definition file '{}' in pkg_resources".format(dataele_file))
             fd = resource_stream(__name__, os.path.join('map', dataele_file))
-        for eElem in et.parse(fd).iter('data_ele'):
+        parser = et.XMLParser(encoding="utf-8")
+        for eElem in et.parse(fd, parser=parser).iter('data_ele'):
             ele_num = eElem.get('ele_num')
             data_type = eElem.get('data_type')
             min_len = int(eElem.get('min_len'))
@@ -57,6 +61,7 @@ class DataElements(object):
             name = eElem.get('name')
             self.dataele[ele_num] = {'data_type': data_type, 'min_len':
                                      min_len, 'max_len': max_len, 'name': name}
+        fd.close()
 
     def get_by_elem_num(self, ele_num):
         """

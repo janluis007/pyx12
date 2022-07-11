@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright 
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -13,6 +13,8 @@ Generates a 999 Response
 Visitor - Visits an error_handler composite
 """
 
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import time
 import logging
 import random
@@ -50,6 +52,7 @@ class error_999_visitor(pyx12.error_visitor.error_visitor):
         self.st_control_num = 0
         self.vriic = '005010X231'
 
+
     def visit_root_pre(self, errh):
         """
         @param errh: Error handler
@@ -76,7 +79,7 @@ class error_999_visitor(pyx12.error_visitor.error_visitor):
         isa_seg.set('11', self.repetition_term)
         isa_seg.set('12', icvn)
         isa_seg.set('13', self.isa_control_num)  # ISA Interchange Control Number
-        isa_seg.set('14', seg.get_value('ISA14'))
+        isa_seg.set('14', '0') # No need for TA1 response to 999
         isa_seg.set('15', seg.get_value('ISA15'))
         isa_seg.set('16', self.subele_term)
         self.wr.Write(isa_seg)
@@ -235,6 +238,14 @@ class error_999_visitor(pyx12.error_visitor.error_visitor):
         @param err_st: ST Loop error handler
         @type err_st: L{error_handler.err_st}
         """
+        if err_st is None:
+            raise EngineError('Cannot create AK2 : err_st is None')
+        if err_st.trn_set_id is None:
+            raise EngineError('Cannot create AK2: err_st.trn_set_id was not set')
+        if err_st.trn_set_control_num is None:
+            raise EngineError('Cannot create AK2: err_st.trn_set_control_num was not set')
+        if err_st.vriic is None:
+            raise EngineError('Cannot create AK2: err_st.vriic was not set')
         seg_data = pyx12.segment.Segment('AK2', '~', '*', ':')
         seg_data.set('01', err_st.trn_set_id)
         seg_data.set('02', err_st.trn_set_control_num.strip())

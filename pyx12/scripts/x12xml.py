@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 ######################################################################
-# Copyright Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -16,6 +16,8 @@ Validate against a map and codeset values.
 Create a XML document based on the data file.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import os.path
 from os.path import isdir, isfile
@@ -55,7 +57,7 @@ def main():
                         dest="configfile", default=None)
     parser.add_argument('--log-file', '-l', action='store', dest="logfile", default=None)
     parser.add_argument('--map-path', '-m', action='store', dest="map_path", default=None, type=check_map_path_arg)
-    parser.add_argument('--verbose', '-v', action='count')
+    parser.add_argument('--verbose', '-v', action='count', default=0)
     parser.add_argument('--debug', '-d', action='store_true')
     parser.add_argument('--quiet', '-q', action='store_true')
     parser.add_argument('--html', '-H', action='store_true')
@@ -117,7 +119,7 @@ def main():
         fd_xml = sys.stdout
     try:
         result = pyx12.x12n_document.x12n_document(param=param, src_file=fd_src,
-            fd_997=None, fd_html=None, fd_xmldoc=fd_xml, map_path=args.map_path)
+                fd_997=None, fd_html=None, fd_xmldoc=fd_xml, map_path=args.map_path)
         if not result:
             logger.error('Input file had errors.')
             return False

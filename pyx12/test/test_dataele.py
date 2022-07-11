@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import unittest
 
 import pyx12.dataele
@@ -46,7 +48,7 @@ class LookupDataElemMapPath(unittest.TestCase):
 
     def setUp(self):
         import os.path
-        map_path = os.path.join(os.path.dirname(pyx12.codes.__file__), 'map')
+        map_path = os.path.join(os.path.dirname(pyx12.dataele.__file__), 'map')
         self.de = pyx12.dataele.DataElements(map_path)
 
     def testOK_AN(self):

@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright (c) Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright (c) 
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -26,6 +26,8 @@ SEG[434]02-1
 
 """
 
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import re
 
 from pyx12.errors import X12PathError
@@ -62,9 +64,11 @@ class X12Path(object):
         if path_str[0] == '/':
             self.relative = False
             self.loop_list = path_str[1:].split('/')
+            #self.loop_list = [x for x in path_str[1:].split('/') if x != '']
         else:
             self.relative = True
-            self.loop_list = path_str.split('/')
+            self.loop_list = path_str.split('/') 
+            #self.loop_list = [x for x in path_str.split('/') if x != '']
         if len(self.loop_list) == 0:
             return
         if len(self.loop_list) > 0 and self.loop_list[-1] == '':
@@ -151,7 +155,7 @@ class X12Path(object):
         if not self.relative:
             ret += '/'
         ret += '/'.join(self.loop_list)
-        if self.seg_id and ret != '':
+        if self.seg_id and ret != '' and ret != '/':
             ret += '/'
         ret += self.format_refdes()
         return ret

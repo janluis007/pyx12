@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import unittest
 
 from pyx12.validation import IsValidDataType
@@ -236,6 +238,10 @@ class Extendedi5010Identifier(unittest.TestCase):
         self.assertTrue(IsValidDataType('10&3', 'ID', 'E', '00501'))
         self.assertTrue(IsValidDataType('  XYZ', 'ID', 'E', '00501'))
         self.assertTrue(IsValidDataType('abc   ', 'ID', 'E', '00501'))
+
+    def testInvalid(self):
+        self.assertFalse(
+            IsValidDataType('%s' % (chr(0x1D)), 'ID', 'E', '00501'))
 
 
 class Extended5010String(unittest.TestCase):

@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright (c) 2001-2005 Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright (c)
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -8,12 +8,11 @@
 #
 ######################################################################
 
-#    $Id$
-
 """pyx12 package exception classes.
 """
 
 
+from __future__ import unicode_literals
 class XML_Reader_Error(Exception):
     """Class for XML Reader errors."""
 

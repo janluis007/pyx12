@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -11,9 +11,11 @@
 """
 Loop and segment counter
 """
+from __future__ import absolute_import
+from __future__ import unicode_literals
 from collections import OrderedDict
 import pyx12.path
-from decorators import dump_args
+from .decorators import dump_args
 
 
 class NodeCounter(object):

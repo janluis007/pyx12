@@ -1,8 +1,8 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import unittest
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
+from io import StringIO
+import tempfile
 
 import pyx12.error_handler
 #from pyx12.errors import *
@@ -383,6 +383,12 @@ class Segment_ID_Checks(X12fileTestCase):
         (err_cde, err_str) = self._get_first_error(str1)
         self.assertEqual(err_cde, '8', err_str)
 
+    def test_segment_trailing_space(self):
+        str1 = 'ISA*00*          *00*          *ZZ*ZZ000          *ZZ*ZZ001          *030828*1128*U*00401*000010121*0*T*:~ \n'
+        str1 += 'ZZ*0019~ \n'
+        (err_cde, err_str) = self._get_first_error(str1)
+        self.assertEqual(err_cde, '1', err_str)
+
 
 class FileString(X12fileTestCase):
 
@@ -433,6 +439,52 @@ class X12WriterTest(X12fileTestCase):
         fd_out.seek(0)
         newval = fd_out.read()
         self.assertMultiLineEqual(output, newval)
+
+    def test_tempfile_ascii(self):
+        segs = [
+            'ISA*00*          *00*          *ZZ*ZZ000          *ZZ*ZZ001          *030828*1128*U*00401*000010121*0*T*:',
+            'GS*HC*ZZ000*ZZ001*20030828*1128*17*X*004010X098',
+            'ST*837*11280001',
+            'HL*1**20*1',
+            'HL*2*1*22*1',
+            'HL*3*2*23*1',
+            'HL*4*1*22*1',
+            'SE*6*11280001',
+            'GE*1*17',
+            'IEA*1*000010121'
+        ]
+        fd_out = tempfile.TemporaryFile(mode='w+', encoding='ascii')
+        wr = pyx12.x12file.X12Writer(fd_out, '~', '*', ':', '\n')
+        output = ''
+        for seg_str in segs:
+            seg_data = pyx12.segment.Segment(seg_str, '~', '*', ':')
+            wr.Write(seg_data)
+            output += seg_str + '~\n'
+        fd_out.seek(0)
+        newval = fd_out.read()
+        self.assertMultiLineEqual(output, newval)
+
+    def test_tempfile_fail_no_encoding(self):
+        segs = [
+            'ISA*00*          *00*          *ZZ*ZZ000          *ZZ*ZZ001          *030828*1128*U*00401*000010121*0*T*:',
+            'GS*HC*ZZ000*ZZ001*20030828*1128*17*X*004010X098',
+            'ST*837*11280001',
+            'HL*1**20*1',
+            'HL*2*1*22*1',
+            'HL*3*2*23*1',
+            'HL*4*1*22*1',
+            'SE*6*11280001',
+            'GE*1*17',
+            'IEA*1*000010121'
+        ]
+        fd_out = tempfile.TemporaryFile()
+        wr = pyx12.x12file.X12Writer(fd_out, '~', '*', ':', '\n')
+        output = ''
+        for seg_str in segs:
+            seg_data = pyx12.segment.Segment(seg_str, '~', '*', ':')
+            self.assertRaises(TypeError, wr.Write, seg_data)
+           
+        
 
     def test_identity_5010(self):
         segs = [

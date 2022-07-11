@@ -1,9 +1,7 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import unittest
-#import tempfile
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
+from io import StringIO
 
 import pyx12.error_handler
 from pyx12.errors import EngineError  # , X12PathError
@@ -84,9 +82,30 @@ class TreeGetValue(X12fileTestCase):
                 self.loop2300 = datatree
                 break
 
+    def test_get_line_numbers_2200(self):
+        loop2400 = self.loop2300.first('2400')
+        self.assertEqual(self.loop2300.seg_count, 19)
+        self.assertEqual(self.loop2300.cur_line_number, 21)
+        for seg in loop2400.select('CLM'):
+            self.assertEqual(seg.seg_count, 25)
+            self.assertEqual(seg.cur_line_number, 2271)
+            break
+
+    def test_get_line_numbers_2400(self):
+        loop2400 = self.loop2300.first('2400')
+        self.assertEqual(loop2400.seg_count, 35)
+        self.assertEqual(loop2400.cur_line_number, 37)
+        for svc in loop2400.select('SV1'):
+            self.assertEqual(svc.seg_count, 36)
+            self.assertEqual(svc.cur_line_number, 38)
+            break
+
     def test_get_seg_value(self):
         self.assertEqual(self.loop2300.get_value('CLM02'), '21')
         self.assertEqual(self.loop2300.get_value('CLM99'), None)
+
+    def test_get_seg_value_fail_no_element_index(self):
+        self.assertRaises(IndexError, self.loop2300.get_value, 'CLM')
 
     def test_get_parent_value(self):
         loop2400 = self.loop2300.first('2400')
@@ -158,14 +177,15 @@ class TreeSelect(X12fileTestCase):
                 self.loop2300 = datatree
                 break
 
-    def test_select_loops(self):
-        loop2400 = self.loop2300.first('2400')
-        assert loop2400.id == '2400', 'Not in 2400'
-        ct = 0
-        for newtree in loop2400.select('../'):
-            self.assertEqual(newtree.id, '2300')
-            ct += 1
-        self.assertEqual(ct, 1)
+    #def test_select_loop_and_parent(self):
+    #    loop2400 = self.loop2300.first('2400')
+    #    assert loop2400.id == '2400', 'Not in 2400'
+    #    ct = 0
+    #    newtree = loop2400.parent
+    #    for newtree in loop2400.select('../'):
+    #        self.assertEqual(newtree.id, '2300')
+    #        ct += 1
+    #    self.assertEqual(ct, 1)
 
     def test_select_loops(self):
         ct = 0

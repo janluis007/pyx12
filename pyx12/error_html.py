@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -12,9 +12,10 @@
 Generates HTML error output
 """
 
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import time
 import logging
-from types import ListType
 
 # Intrapackage imports
 
@@ -191,7 +192,7 @@ def seg_str(seg, seg_term, ele_term, subele_term, eol=''):
     #    logger.debug(seg)
     tmp = []
     for a in seg:
-        if type(a) is ListType:
+        if type(a) is list:
             tmp.append(subele_term.join(a))
         else:
             tmp.append(a)

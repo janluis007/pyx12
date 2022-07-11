@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright 
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -11,7 +11,8 @@
 """
 """
 
-from errors import EngineError
+from __future__ import unicode_literals
+from .errors import EngineError
 
 isa_errors = ('000', '001', '002', '003', '004', '005', '006', '007', '008',
               '009', '010', '011', '012', '013', '014', '015', '016',

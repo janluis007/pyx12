@@ -1,6 +1,6 @@
 ######################################################################
-# Copyright (c) 2001-2013 Kalamazoo Community Mental Health Services,
-#   John Holland <jholland@kazoocmh.org> <john@zoner.org>
+# Copyright (c) 2001-2013 
+#   John Holland <john@zoner.org>
 # All rights reserved.
 #
 # This software is licensed as described in the file LICENSE.txt, which
@@ -15,12 +15,14 @@ If seg indicates a loop has been entered, returns the first child segment node.
 If seg indicates a segment has been entered, returns the segment node.
 """
 
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import logging
 
 # Intrapackage imports
-from errors import EngineError
+from .errors import EngineError
 import pyx12.segment
-from nodeCounter import NodeCounter
+from .nodeCounter import NodeCounter
 
 logger = logging.getLogger('pyx12.walk_tree')
 #logger.setLevel(logging.DEBUG)

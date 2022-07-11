@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import unittest
 
 import pyx12.map_index
@@ -39,7 +41,7 @@ class GetFilenameMapPath(unittest.TestCase):
     """
     def setUp(self):
         import os.path
-        map_path = os.path.join(os.path.dirname(pyx12.codes.__file__), 'map')
+        map_path = os.path.join(os.path.dirname(pyx12.map_index.__file__), 'map')
         param = pyx12.params.params()
         self.idx = pyx12.map_index.map_index(map_path)
 
